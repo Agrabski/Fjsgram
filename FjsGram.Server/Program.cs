@@ -1,4 +1,7 @@
 using FjsGram.Data;
+using FjsGram.Data.Database;
+using FjsGram.Data.Passwords;
+using FjsGram.Server.Areas;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Mime;
@@ -7,7 +10,10 @@ var builder = WebApplication.CreateSlimBuilder(args);
 
 builder.AddServiceDefaults();
 
-builder.Services.ConfigureHttpJsonOptions(options =>
+builder.Services
+    .AddFjsGramData()
+    .Configure<ArgonOptions>(builder.Configuration.GetSection("argon"))
+    .ConfigureHttpJsonOptions(options =>
 {
 });
 builder.AddSqlServerDbContext<FjsGramContext>("primary");
@@ -19,7 +25,7 @@ app.UseStaticFiles();
 app.Map("", (HttpContext context) =>
 {
     if (!context.User.Identities.Any(x => x.IsAuthenticated))
-        return Results.Redirect("/login.html");
+        return Results.Redirect("account/login.html");
     return Results.Text(
 """
 <div>hello world</div>
@@ -39,6 +45,6 @@ $"""
 );
 });
 
-app.MapPost("login", () => Results.Redirect("/"));
+app.AddAccountArea();
 
 app.Run();

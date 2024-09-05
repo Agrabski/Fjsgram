@@ -1,4 +1,4 @@
-﻿namespace FjsGram.Data;
+﻿namespace FjsGram.Data.Database;
 
 public class Post
 {
