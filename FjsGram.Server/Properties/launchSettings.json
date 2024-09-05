@@ -3,17 +3,17 @@
     "http": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "todos",
+      "launchUrl": "",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "http://localhost:5240"
+      "applicationUrl": "http://localhost:9851"
     },
     "Container (Dockerfile)": {
       "commandName": "Docker",
       "launchBrowser": true,
-      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/todos",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/",
       "environmentVariables": {
         "ASPNETCORE_HTTP_PORTS": "8080"
       },
