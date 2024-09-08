@@ -2,21 +2,21 @@ using FjsGram.Data;
 using FjsGram.Data.Database;
 using FjsGram.Data.Passwords;
 using FjsGram.Server.Areas;
+using FjsGram.Server.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Mime;
 
-var builder = WebApplication.CreateSlimBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 
 builder.Services
     .AddFjsGramData()
+    .AddHostedService<DatabaseMigrationService>()
     .Configure<ArgonOptions>(builder.Configuration.GetSection("argon"))
-    .ConfigureHttpJsonOptions(options =>
-{
-});
-builder.AddSqlServerDbContext<FjsGramContext>("primary");
+;
+builder.AddSqlServerDbContext<FjsGramContext>("primary", o => o.DisableTracing = true);
 var app = builder.Build();
 
 app.MapDefaultEndpoints();

@@ -9,7 +9,9 @@ public static class Accounts
 {
     public static WebApplication AddAccountArea(this WebApplication application)
     {
-        var area = application.MapGroup("account");
+        var area = application
+            .MapGroup("account")
+            .DisableAntiforgery();
         area
             .MapPost("login", LoginAsync)
             .AllowAnonymous()
@@ -43,9 +45,22 @@ public static class Accounts
         [FromForm] string password,
         [FromForm(Name = "confirm-password")] string confirmPassword,
         [FromServices] FjsGramContext context,
+        [FromServices] IPasswordManager passwordManager,
         CancellationToken token
         )
     {
+        if (password != confirmPassword)
+            return Results.BadRequest("Password does not match confirm password");
+        if (await context.Users.AnyAsync(u => u.Login == login, token))
+            return Results.Conflict("Login taken");
+        // todo: confirm email
+        context.Users.Add(new()
+        {
+            Login = login,
+            PasswordHash = passwordManager.HashPassword(password),
+            Email = email,
+        });
+        await context.SaveChangesAsync(token);
         return Results.Redirect("/");
     }
 }
