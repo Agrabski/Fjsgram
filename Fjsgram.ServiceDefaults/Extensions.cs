@@ -1,5 +1,7 @@
+using FjsGram.Data.Database;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
@@ -101,7 +103,21 @@ public static class Extensions
     {
         builder.Services.AddHealthChecks()
             // Add a default liveness check to ensure app is responsive
-            .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"]);
+            .AddCheck("self", () => HealthCheckResult.Healthy(), ["live"])
+            .AddDbContextCheck<FjsGramContext>("db-valid", customTestQuery: async (c, token) =>
+            {
+                try
+                {
+                    await c.Users.Include(u => u.Posts).FirstOrDefaultAsync(token);
+                    await c.Posts.Include(p => p.Images).FirstOrDefaultAsync(token);
+                    await c.Images.FirstOrDefaultAsync(token);
+                    return true;
+                }
+                catch (Exception)
+                {
+                    return false;
+                }
+            });
 
         return builder;
     }
