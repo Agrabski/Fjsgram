@@ -3,15 +3,25 @@ using FjsGram.Data.Database;
 using FjsGram.Data.Passwords;
 using FjsGram.Server.Areas;
 using FjsGram.Server.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Mime;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateSlimBuilder(args);
 
 builder.AddServiceDefaults();
 
 builder.Services
+    .AddAuthorization()
+    .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(o =>
+    {
+        o.ExpireTimeSpan = TimeSpan.FromMinutes(20);
+        o.SlidingExpiration = true;
+        o.AccessDeniedPath = "/Forbidden/";
+    })
+    .Services
     .AddFjsGramData()
     .AddHostedService<DatabaseMigrationService>()
     .Configure<ArgonOptions>(builder.Configuration.GetSection("argon"))
@@ -21,6 +31,12 @@ var app = builder.Build();
 
 app.MapDefaultEndpoints();
 app.UseStaticFiles();
+app.UseCookiePolicy(new CookiePolicyOptions()
+{
+    MinimumSameSitePolicy = SameSiteMode.Strict
+});
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.Map("", (HttpContext context) =>
 {
