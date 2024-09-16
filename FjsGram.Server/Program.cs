@@ -13,6 +13,8 @@ var builder = WebApplication.CreateSlimBuilder(args);
 builder.AddServiceDefaults();
 
 builder.Services
+    .AddResponseCaching()
+    .AddResponseCompression()
     .AddAuthorization()
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(o =>
@@ -29,6 +31,8 @@ builder.Services
 builder.AddSqlServerDbContext<FjsGramContext>("primary", o => o.DisableTracing = true);
 var app = builder.Build();
 
+app.UseResponseCaching();
+app.UseResponseCompression();
 app.MapDefaultEndpoints();
 app.UseStaticFiles();
 app.UseCookiePolicy(new CookiePolicyOptions()
@@ -40,14 +44,9 @@ app.UseAuthorization();
 
 app.Map("", (HttpContext context) =>
 {
-    if (!context.User.Identities.Any(x => x.IsAuthenticated))
-        return Results.Redirect("account/login.html");
-    return Results.Text(
-"""
-<div>hello world</div>
-""", MediaTypeNames.Text.Html);
+    return Results.Redirect("index.html", true);
 });
-app.MapGet("p/{id}", async ([FromRoute] Guid id, [FromServices] FjsGramContext context) =>
+app.MapGet("post/{id}", async ([FromRoute] Guid id, [FromServices] FjsGramContext context) =>
 {
     var post = await context.Posts.Include(p => p.Images).FirstOrDefaultAsync(p => p.Id == id);
     if (post is null)
@@ -61,6 +60,10 @@ $"""
 );
 });
 
-app.AddAccountArea();
+app
+    .AddAccountArea()
+    .AddProfileArea()
+    .AddPostsArea()
+;
 
 app.Run();

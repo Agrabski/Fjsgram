@@ -7,4 +7,5 @@ public class Post
     public required string Description { get; set; }
     public List<Image> Images { get; init; } = [];
     public required User Author { get; set; }
+    public required DateTime Created { get; init; }
 }
